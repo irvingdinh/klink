@@ -13,3 +13,21 @@ bun run index.ts
 ```
 
 This project was created using `bun init` in bun v1.2.20. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+
+## Testing
+
+### jira_search_issues
+
+```
+(
+  printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"stdio-test","version":"0.0.0"}}}'
+  sleep 1
+  printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+  sleep 1
+  printf '%s\n' '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+  sleep 1
+  printf '%s\n' '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"jira_search_issues","arguments":{"jql":"project = UAM"}}}'
+) \
+| bun run ./src/index.ts \
+| jq .
+```
