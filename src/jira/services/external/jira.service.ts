@@ -16,6 +16,44 @@ export class JiraService {
     };
   }
 
+  async getIssue({
+    issueIdOrKey,
+    fields = "*all",
+    expand = "renderedFields,names",
+    properties = "*all",
+    updateHistory = false,
+    failFast = false,
+  }: {
+    issueIdOrKey: string;
+    fields?: string;
+    expand?: string;
+    properties?: string;
+    updateHistory?: boolean;
+    failFast?: boolean;
+  }): Promise<any> {
+    const params = new URLSearchParams({
+      fields,
+      expand,
+      properties,
+      updateHistory: updateHistory.toString(),
+      failFast: failFast.toString(),
+    });
+
+    const response = await fetch(
+      this.makeUrl("issue", issueIdOrKey) + "?" + params.toString(),
+      this.makeAuth(),
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(
+        `Failed to get issue: ${response.status} ${response.statusText} - ${text}`,
+      );
+    }
+
+    return response.json();
+  }
+
   async searchIssues({
     jql,
     startAt = 0,
