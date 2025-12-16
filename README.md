@@ -22,7 +22,8 @@ This project was created using `bun init` in bun v1.2.20. [Bun](https://bun.com)
 
 ## Instruction
 
-* When working with MCP tool, read: docs/guidelines/how-to-write-mcp-tool-description.md
+* When writing MCP tool description, input schema, etc. read: docs/guidelines/how-to-write-mcp-tool-description.md
+* When implementing MCP tool handler, logic, etc. read: docs/guidelines/how-to-write-mcp-tool-handler.md
 
 ## Testing
 

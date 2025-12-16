@@ -28,6 +28,20 @@ export const withErrorHandling = <TArgs>(
   };
 };
 
+export const withTextOutput = <TArgs>(
+  handler: (
+    args: TArgs,
+    extra: RequestHandlerExtra<ServerRequest, ServerNotification>,
+  ) => string | Promise<string>,
+): ToolHandler<TArgs> => {
+  return async (args, extra) => {
+    const text = await handler(args, extra);
+    return {
+      content: [{ type: "text", text }],
+    };
+  };
+};
+
 export const withTemporaryTextOutput = <TArgs>(
   moduleRef: string,
   toolRef: string,
