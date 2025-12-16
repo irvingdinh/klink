@@ -1,3 +1,5 @@
+import { EnvService } from "../../../core/service/env.service.ts";
+
 let instance: JiraService;
 
 export const getJiraService = (): JiraService => {
@@ -9,18 +11,16 @@ export class JiraService {
   private readonly config: JiraClientConfig;
 
   constructor() {
-    const host = getRequiredEnv(
-      "JIRA_HOST",
-      "Set it to your Jira base URL, e.g. 'https://your-org.atlassian.net'.",
-    ).replace(/\/+$/, "");
-
     this.config = {
-      host,
-      emailAddress: getRequiredEnv(
+      host: EnvService.getRequiredEnv(
+        "JIRA_HOST",
+        "Set it to your Jira base URL, e.g. 'https://your-org.atlassian.net'.",
+      ).replace(/\/+$/, ""),
+      emailAddress: EnvService.getRequiredEnv(
         "JIRA_EMAIL_ADDRESS",
         "Set it to the Jira user email address, e.g. 'you@company.com'.",
       ),
-      apiToken: getRequiredEnv(
+      apiToken: EnvService.getRequiredEnv(
         "JIRA_API_TOKEN",
         "Set it to an Atlassian API token.",
       ),
@@ -116,14 +116,4 @@ type JiraClientConfig = {
   host: string;
   emailAddress: string;
   apiToken: string;
-};
-
-const getRequiredEnv = (key: string, guidance: string): string => {
-  const value = process.env[key];
-
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`Missing required environment variable ${key}. ${guidance}`);
-  }
-
-  return value.trim();
 };
