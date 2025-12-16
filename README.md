@@ -12,7 +12,17 @@ To run:
 bun run index.ts
 ```
 
+To build:
+
+```bash
+bun build --compile --minify src/index.ts --outfile klink
+```
+
 This project was created using `bun init` in bun v1.2.20. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+
+## Instruction
+
+* When working with MCP tool, read: docs/guidelines/how-to-write-mcp-tool-description.md
 
 ## Testing
 
@@ -46,4 +56,12 @@ This project was created using `bun init` in bun v1.2.20. [Bun](https://bun.com)
 ) \
 | bun run ./src/index.ts \
 | jq .
+```
+
+## Setup
+
+### OpenAI Codex CLI
+
+```bash 
+codex mcp add klink -- sh -c "cd $HOME/Workspace/git.taservs.net/idinh/klink && ./klink"
 ```

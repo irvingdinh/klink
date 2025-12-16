@@ -9,10 +9,21 @@ export class JiraService {
   private readonly config: JiraClientConfig;
 
   constructor() {
+    const host = getRequiredEnv(
+      "JIRA_HOST",
+      "Set it to your Jira base URL, e.g. 'https://your-org.atlassian.net'.",
+    ).replace(/\/+$/, "");
+
     this.config = {
-      host: process.env.JIRA_HOST as string,
-      emailAddress: process.env.JIRA_EMAIL_ADDRESS as string,
-      apiToken: process.env.JIRA_API_TOKEN as string,
+      host,
+      emailAddress: getRequiredEnv(
+        "JIRA_EMAIL_ADDRESS",
+        "Set it to the Jira user email address, e.g. 'you@company.com'.",
+      ),
+      apiToken: getRequiredEnv(
+        "JIRA_API_TOKEN",
+        "Set it to an Atlassian API token.",
+      ),
     };
   }
 
@@ -20,23 +31,14 @@ export class JiraService {
     issueIdOrKey,
     fields = "*all",
     expand = "renderedFields,names",
-    properties = "*all",
-    updateHistory = false,
-    failFast = false,
   }: {
     issueIdOrKey: string;
     fields?: string;
     expand?: string;
-    properties?: string;
-    updateHistory?: boolean;
-    failFast?: boolean;
   }): Promise<any> {
     const params = new URLSearchParams({
       fields,
       expand,
-      properties,
-      updateHistory: updateHistory.toString(),
-      failFast: failFast.toString(),
     });
 
     const response = await fetch(
@@ -114,4 +116,14 @@ type JiraClientConfig = {
   host: string;
   emailAddress: string;
   apiToken: string;
+};
+
+const getRequiredEnv = (key: string, guidance: string): string => {
+  const value = process.env[key];
+
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`Missing required environment variable ${key}. ${guidance}`);
+  }
+
+  return value.trim();
 };

@@ -28,12 +28,14 @@ const inputSchema = {
     .default(
       "summary,issuetype,status,priority,assignee,reporter,created,updated,project",
     )
-    .describe("Comma-separated list of fields to include in the response"),
+    .describe(
+      "Comma-separated list of fields to include in the response. Defaults to common fields. Use '*all' for all fields or '*navigable' for navigable fields.",
+    ),
   expand: z
     .string()
     .default("renderedFields,names")
     .describe(
-      "Comma-separated list of expand options for additional issue data",
+      "Comma-separated list of expand options for additional issue data. Defaults to 'renderedFields,names'.",
     ),
 };
 
@@ -42,33 +44,51 @@ export const registerSearchIssuesTool = (server: McpServer) => {
     "jira_search_issues",
     {
       description:
-        "Search for JIRA issues using JQL (Jira Query Language). Returns matching issues with their details. Results are written to a temporary file and the file path is returned.",
+        "Search for JIRA issues using JQL (Jira Query Language). Use this when you need to find issues by criteria; use jira_get_issue if you already know the specific issue key/ID. Returns matching issues with their details. Results are written to a temporary file as JSON and the file path is returned.",
       inputSchema,
     },
     async ({ jql, startAt, maxResults, fields, expand }) => {
-      const jiraService = getJiraService();
-      const result = await jiraService.searchIssues({
-        jql,
-        startAt,
-        maxResults,
-        fields,
-        expand,
-      });
+      try {
+        const jiraService = getJiraService();
+        const result = await jiraService.searchIssues({
+          jql,
+          startAt,
+          maxResults,
+          fields,
+          expand,
+        });
 
-      const outputFilePath = await FileService.writeTemporaryTextOutput(
-        "jira",
-        "search-issues",
-        JSON.stringify(result, null, 2),
-      );
+        const outputFilePath = await FileService.writeTemporaryTextOutput(
+          "jira",
+          "search-issues",
+          JSON.stringify(result, null, 2),
+        );
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: outputFilePath,
-          },
-        ],
-      };
+        return {
+          content: [
+            {
+              type: "text",
+              text: outputFilePath,
+            },
+          ],
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text:
+                `Error searching issues with JQL '${jql}': ${message}\n\n` +
+                "Troubleshooting:\n" +
+                "- Verify the JQL syntax (example: 'project = PROJ AND status = Open').\n" +
+                "- If this is a 401/403, verify JIRA_HOST, JIRA_EMAIL_ADDRESS, and JIRA_API_TOKEN.\n",
+            },
+          ],
+          isError: true,
+        };
+      }
     },
   );
 };

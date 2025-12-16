@@ -10,6 +10,18 @@ const inputSchema = {
     .describe(
       "The ID or key of the issue to retrieve. Example: 'PROJ-123' or '10001'",
     ),
+  fields: z
+    .string()
+    .default("*navigable")
+    .describe(
+      "Comma-separated list of field IDs to return. Defaults to '*navigable'. Use '*all' for all fields.",
+    ),
+  expand: z
+    .string()
+    .default("renderedFields,names,changelog")
+    .describe(
+      "Comma-separated list of entities to expand. Defaults to 'renderedFields,names,changelog'.",
+    ),
 };
 
 export const registerGetIssueTool = (server: McpServer) => {
@@ -17,152 +29,50 @@ export const registerGetIssueTool = (server: McpServer) => {
     "jira_get_issue",
     {
       description:
-        "Get a single JIRA issue by its ID or key. Results are written to a temporary file and the file path is returned.",
+        "Get a single JIRA issue by its ID or key (e.g., 'PROJ-123'). Use this when you already know the specific issue key/ID; use jira_search_issues when you need to find issues by criteria. Results are written to a temporary file as JSON and the file path is returned.",
       inputSchema,
     },
-    async ({ issueIdOrKey }) => {
-      const jiraService = getJiraService();
+    async ({ issueIdOrKey, fields, expand }) => {
+      try {
+        const jiraService = getJiraService();
 
-      const issue = await jiraService.getIssue({
-        issueIdOrKey,
-        fields: "*all",
-        expand: "renderedFields,names",
-        properties: "",
-        updateHistory: false,
-        failFast: false,
-      });
+        const issue = await jiraService.getIssue({
+          issueIdOrKey,
+          fields,
+          expand,
+        });
 
-      const output = transformIssue(issue);
+        const outputFilePath = await FileService.writeTemporaryTextOutput(
+          "jira",
+          "get-issue",
+          JSON.stringify(issue, null, 2),
+        );
 
-      const outputFilePath = await FileService.writeTemporaryTextOutput(
-        "jira",
-        "get-issue",
-        JSON.stringify(output, null, 2),
-      );
+        return {
+          content: [
+            {
+              type: "text",
+              text: outputFilePath,
+            },
+          ],
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: outputFilePath,
-          },
-        ],
-      };
+        return {
+          content: [
+            {
+              type: "text",
+              text:
+                `Error getting issue '${issueIdOrKey}': ${message}\n\n` +
+                "Troubleshooting:\n" +
+                "- If this is a 404, verify the issue key/ID exists and you have access.\n" +
+                "- If this is a 401/403, verify JIRA_HOST, JIRA_EMAIL_ADDRESS, and JIRA_API_TOKEN.\n",
+            },
+          ],
+          isError: true,
+        };
+      }
     },
   );
 };
-
-function transformIssue(rawIssue: any): any {
-  if (!rawIssue) {
-    return null;
-  }
-
-  const transformed: any = {
-    id: rawIssue.id,
-    key: rawIssue.key,
-    url: rawIssue.self?.replace("/rest/api/3/issue/", "/browse/") ?? null,
-    fields: {},
-  };
-
-  if (rawIssue.fields && rawIssue.names) {
-    const fieldNames = rawIssue.names;
-    const rendered = rawIssue.renderedFields ?? {};
-
-    for (const [fieldKey, fieldValue] of Object.entries(rawIssue.fields)) {
-      if (fieldValue === null || fieldValue === undefined) {
-        continue;
-      }
-
-      const fieldName = fieldNames[fieldKey] || fieldKey;
-      const simplifiedValue = simplifyValue(fieldKey, fieldValue, rendered);
-
-      if (simplifiedValue !== null && simplifiedValue !== undefined) {
-        transformed.fields[fieldKey] = {
-          name: fieldName,
-          value: simplifiedValue,
-        };
-      }
-    }
-  }
-
-  return transformed;
-}
-
-function simplifyValue(fieldKey: string, value: any, rendered: any): any {
-  if (isAdfDocument(value)) {
-    return rendered[fieldKey] ?? null;
-  }
-
-  if (fieldKey === "comment" && value?.comments) {
-    const renderedComments = rendered.comment?.comments ?? [];
-    return value.comments.map((c: any, i: number) => ({
-      author: c.author?.displayName ?? null,
-      body: renderedComments[i]?.body ?? null,
-      created: c.created ?? null,
-    }));
-  }
-
-  if (isUserObject(value)) {
-    return value.displayName;
-  }
-
-  if (isNamedObject(value)) {
-    return value.name;
-  }
-
-  if (fieldKey === "parent" && value?.key) {
-    return {
-      key: value.key,
-      summary: value.fields?.summary ?? null,
-      status: value.fields?.status?.name ?? null,
-      issuetype: value.fields?.issuetype?.name ?? null,
-    };
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((v) => simplifyArrayElement(v));
-  }
-
-  return value;
-}
-
-function isAdfDocument(value: any): boolean {
-  return (
-    value &&
-    typeof value === "object" &&
-    value.type === "doc" &&
-    typeof value.version === "number" &&
-    Array.isArray(value.content)
-  );
-}
-
-function isUserObject(value: any): boolean {
-  return (
-    value &&
-    typeof value === "object" &&
-    "displayName" in value &&
-    "accountId" in value
-  );
-}
-
-function isNamedObject(value: any): boolean {
-  return (
-    value &&
-    typeof value === "object" &&
-    "name" in value &&
-    ("id" in value || "statusCategory" in value) &&
-    !("displayName" in value)
-  );
-}
-
-function simplifyArrayElement(value: any): any {
-  if (isUserObject(value)) {
-    return value.displayName;
-  }
-
-  if (isNamedObject(value)) {
-    return value.name;
-  }
-  
-  return value;
-}
