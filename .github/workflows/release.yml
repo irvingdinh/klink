@@ -63,20 +63,33 @@ jobs:
             --target=bun-windows-x64 \
             --outfile "klink-${VERSION}-windows-x64.exe"
 
-      - name: Get commit message
-        id: commit
+      - name: Prepare release notes
+        id: notes
         run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+          
+          # Get commit message
           MESSAGE=$(git log -1 --pretty=%B)
-          echo "message<<EOF" >> $GITHUB_OUTPUT
+          
+          # Read template and replace placeholder
+          # Use awk to handle potential special characters better than simple variable substitution
+          TEMPLATE=$(cat .github/release_template.md)
+          INSTRUCTIONS=${TEMPLATE//\{\{VERSION\}\}/$VERSION}
+          
+          # Output with a random delimiter to avoid conflicts
+          DELIMITER="EOF_$(date +%s)"
+          echo "notes<<$DELIMITER" >> $GITHUB_OUTPUT
           echo "$MESSAGE" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "$INSTRUCTIONS" >> $GITHUB_OUTPUT
+          echo "$DELIMITER" >> $GITHUB_OUTPUT
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
-          body: ${{ steps.commit.outputs.message }}
+          body: ${{ steps.notes.outputs.notes }}
           draft: true
           files: |
             klink-v${{ steps.version.outputs.version }}-macos-arm64
