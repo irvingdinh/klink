@@ -1,3 +1,5 @@
+import { tmpdir } from "node:os";
+
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
   CallToolResult,
@@ -62,4 +64,31 @@ export const withTemporaryTextOutput = <TArgs>(
       content: [{ type: "text", text: outputFilePath }],
     };
   };
+};
+
+export const getTempDir = (): string => tmpdir();
+
+export const resolveContent = async (
+  content: string | undefined,
+  contentFile: string | undefined,
+  paramName: string = "content",
+): Promise<string> => {
+  if (content && contentFile) {
+    throw new Error(
+      `Both ${paramName} and ${paramName}File provided. Use one or the other.`,
+    );
+  }
+  if (!content && !contentFile) {
+    throw new Error(`Either ${paramName} or ${paramName}File is required.`);
+  }
+  if (contentFile) {
+    const file = Bun.file(contentFile);
+    if (!(await file.exists())) {
+      throw new Error(
+        `File not found: ${contentFile}. Ensure the file exists and the path is absolute.`,
+      );
+    }
+    return await file.text();
+  }
+  return content!;
 };

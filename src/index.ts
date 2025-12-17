@@ -3,6 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 import { getModuleConfigService } from "./core/service/module-config.service.ts";
 import { registerJiraTools } from "./jira/tools";
+import { registerQuipTools } from "./quip/tools";
 import { registerSlackTools } from "./slack/tools";
 
 const server = new McpServer({
@@ -12,6 +13,7 @@ const server = new McpServer({
 
 const moduleConfig = getModuleConfigService();
 if (moduleConfig.isEnabled("jira")) registerJiraTools(server);
+if (moduleConfig.isEnabled("quip")) registerQuipTools(server);
 if (moduleConfig.isEnabled("slack")) registerSlackTools(server);
 
 const transport = new StdioServerTransport();

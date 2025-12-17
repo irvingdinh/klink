@@ -103,6 +103,54 @@ async ({ issueIdOrKey, fields, expand }, extra) => {
 }
 ```
 
+#### Large Text Input Support
+
+For tools that accept text content (e.g., document content, messages), support both:
+- **Direct text** via the parameter (e.g., `content`, `text`)
+- **File path** via a `{param}File` parameter (e.g., `contentFile`, `textFile`)
+
+This allows AI agents to handle large content by writing to a temp file first.
+
+**Input Schema Pattern:**
+
+```typescript
+import { getTempDir, resolveContent } from "../../core/utils/tool.utils.ts";
+
+const inputSchema = {
+  content: z
+    .string()
+    .optional()
+    .describe("The content in Markdown format. Example: '# Heading\\n\\nText here.'"),
+  contentFile: z
+    .string()
+    .optional()
+    .describe(
+      `Absolute path to a file containing the content. Use this for large content. ` +
+      `Write the file to the system temp directory (${getTempDir()}) then provide the path here.`
+    ),
+};
+```
+
+**Handler Pattern:**
+
+```typescript
+async ({ content, contentFile, ...rest }) => {
+  // resolveContent handles mutual exclusivity and file reading
+  const resolvedContent = await resolveContent(content, contentFile, "content");
+  
+  // Use resolvedContent in your service call
+  await service.doSomething({ content: resolvedContent, ...rest });
+}
+```
+
+**Naming Convention:**
+
+| Text Param | File Param |
+|------------|------------|
+| `content` | `contentFile` |
+| `text` | `textFile` |
+| `comment` | `commentFile` |
+
 ### Step 4: Error Handling
 
 **Do NOT catch errors in your handler.** Let them propagate to `withErrorHandling`.
@@ -286,3 +334,4 @@ import {
 - [ ] No try/catch in inner handler (let errors propagate)
 - [ ] Uses service singleton (`getXxxService()`)
 - [ ] JSON responses use `JSON.stringify(data, null, 2)`
+- [ ] Write tools with text input support both direct text and `{param}File` alternative

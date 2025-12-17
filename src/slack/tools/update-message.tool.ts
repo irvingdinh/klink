@@ -2,6 +2,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
 import {
+  getTempDir,
+  resolveContent,
   withErrorHandling,
   withTextOutput,
 } from "../../core/utils/tool.utils.ts";
@@ -20,7 +22,15 @@ const inputSchema = {
     ),
   text: z
     .string()
+    .optional()
     .describe("The new message text. Supports Slack mrkdwn formatting."),
+  textFile: z
+    .string()
+    .optional()
+    .describe(
+      `Absolute path to a file containing the new message text. Use this for large messages. ` +
+        `Write the file to the system temp directory (${getTempDir()}) then provide the path here.`,
+    ),
 };
 
 export const registerUpdateMessageTool = (server: McpServer) => {
@@ -34,12 +44,14 @@ export const registerUpdateMessageTool = (server: McpServer) => {
       inputSchema,
     },
     withErrorHandling(
-      withTextOutput(async ({ channel, ts, text }) => {
+      withTextOutput(async ({ channel, ts, text, textFile }) => {
+        const resolvedText = await resolveContent(text, textFile, "text");
+
         const slackService = getSlackService();
         const result = await slackService.updateMessage({
           conversationId: channel,
           messageTs: ts,
-          text,
+          text: resolvedText,
         });
 
         return JSON.stringify(
