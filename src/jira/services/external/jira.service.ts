@@ -1,4 +1,5 @@
 import { EnvService } from "../../../core/service/env.service.ts";
+import { makeError } from "../../../core/utils/http.utils.ts";
 
 let instance: JiraService;
 
@@ -47,10 +48,7 @@ export class JiraService {
     );
 
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `Failed to get issue: ${response.status} ${response.statusText} - ${text}`,
-      );
+      throw await makeError("getIssue", response);
     }
 
     return response.json();
@@ -83,10 +81,7 @@ export class JiraService {
     );
 
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `Failed to search issues: ${response.status} ${response.statusText} - ${text}`,
-      );
+      throw await makeError("searchIssues", response);
     }
 
     return response.json();

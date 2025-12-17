@@ -1,4 +1,5 @@
 import { EnvService } from "../../../core/service/env.service.ts";
+import { makeError } from "../../../core/utils/http.utils.ts";
 
 let instance: QuipService;
 
@@ -8,22 +9,42 @@ export const getQuipService = (): QuipService => {
 };
 
 export class QuipService {
-  private readonly baseUrl = "https://platform.quip.com/1";
-  private readonly apiToken: string;
+  private readonly config: QuipClientConfig;
 
   constructor() {
-    this.apiToken = EnvService.getRequiredEnv(
-      "QUIP_API_TOKEN",
-      "Set it to your Quip API token. Get one at https://quip.com/dev/token",
-    );
+    this.config = {
+      host: "https://platform.quip.com/1",
+      apiToken: EnvService.getRequiredEnv(
+        "QUIP_API_TOKEN",
+        "Set it to your Quip API token. Get one at https://quip.com/dev/token",
+      ),
+    };
   }
 
   async getThread({ threadId }: { threadId: string }): Promise<QuipThread> {
-    return await this.fetch(`/threads/${threadId}`);
+    const response = await fetch(
+      this.makeUrl("threads", threadId),
+      this.makeAuth(),
+    );
+
+    if (!response.ok) {
+      throw await makeError("getThread", response);
+    }
+
+    return response.json() as Promise<QuipThread>;
   }
 
   async getFolder({ folderId }: { folderId: string }): Promise<QuipFolder> {
-    return await this.fetch(`/folders/${folderId}`);
+    const response = await fetch(
+      this.makeUrl("folders", folderId),
+      this.makeAuth(),
+    );
+
+    if (!response.ok) {
+      throw await makeError("getFolder", response);
+    }
+
+    return response.json() as Promise<QuipFolder>;
   }
 
   async searchThreads({
@@ -41,7 +62,16 @@ export class QuipService {
       only_match_titles: onlyMatchTitles.toString(),
     });
 
-    return await this.fetch(`/threads/search?${params.toString()}`);
+    const response = await fetch(
+      this.makeUrl("threads", "search") + "?" + params.toString(),
+      this.makeAuth(),
+    );
+
+    if (!response.ok) {
+      throw await makeError("searchThreads", response);
+    }
+
+    return response.json() as Promise<QuipThread[]>;
   }
 
   async getRecentThreads({
@@ -58,7 +88,16 @@ export class QuipService {
     if (maxUpdatedUsec)
       params.set("max_updated_usec", maxUpdatedUsec.toString());
 
-    return await this.fetch(`/threads/recent?${params.toString()}`);
+    const response = await fetch(
+      this.makeUrl("threads", "recent") + "?" + params.toString(),
+      this.makeAuth(),
+    );
+
+    if (!response.ok) {
+      throw await makeError("getRecentThreads", response);
+    }
+
+    return response.json() as Promise<QuipThread[]>;
   }
 
   async getMessages({
@@ -77,7 +116,16 @@ export class QuipService {
     if (maxCreatedUsec !== undefined)
       params.set("max_created_usec", maxCreatedUsec.toString());
 
-    return await this.fetch(`/messages/${threadId}?${params.toString()}`);
+    const response = await fetch(
+      this.makeUrl("messages", threadId) + "?" + params.toString(),
+      this.makeAuth(),
+    );
+
+    if (!response.ok) {
+      throw await makeError("getMessages", response);
+    }
+
+    return response.json() as Promise<QuipMessage[]>;
   }
 
   async createDocument({
@@ -101,10 +149,19 @@ export class QuipService {
       body.member_ids = memberIds.join(",");
     }
 
-    return await this.fetch("/threads/new-document", {
-      method: "POST",
-      body: new URLSearchParams(body),
-    });
+    const response = await fetch(
+      this.makeUrl("threads", "new-document"),
+      this.makeAuth({
+        method: "POST",
+        body: new URLSearchParams(body),
+      }),
+    );
+
+    if (!response.ok) {
+      throw await makeError("createDocument", response);
+    }
+
+    return response.json() as Promise<QuipThread>;
   }
 
   async editDocument({
@@ -160,10 +217,19 @@ export class QuipService {
       }
     }
 
-    return await this.fetch("/threads/edit-document", {
-      method: "POST",
-      body: new URLSearchParams(body),
-    });
+    const response = await fetch(
+      this.makeUrl("threads", "edit-document"),
+      this.makeAuth({
+        method: "POST",
+        body: new URLSearchParams(body),
+      }),
+    );
+
+    if (!response.ok) {
+      throw await makeError("editDocument", response);
+    }
+
+    return response.json() as Promise<QuipThread>;
   }
 
   async newMessage({
@@ -185,33 +251,41 @@ export class QuipService {
     if (sectionId) body.section_id = sectionId;
     if (annotationId) body.annotation_id = annotationId;
 
-    return await this.fetch("/messages/new", {
-      method: "POST",
-      body: new URLSearchParams(body),
-    });
+    const response = await fetch(
+      this.makeUrl("messages", "new"),
+      this.makeAuth({
+        method: "POST",
+        body: new URLSearchParams(body),
+      }),
+    );
+
+    if (!response.ok) {
+      throw await makeError("newMessage", response);
+    }
+
+    return response.json() as Promise<QuipMessage>;
   }
 
-  private async fetch(path: string, options: RequestInit = {}): Promise<any> {
-    const url = `${this.baseUrl}${path}`;
-    const response = await fetch(url, {
+  private makeUrl(...paths: string[]): string {
+    return `${this.config.host}/${paths.filter((p) => p).join("/")}`;
+  }
+
+  private makeAuth(options: RequestInit = {}): RequestInit {
+    return {
       ...options,
       headers: {
         ...options.headers,
-        Authorization: `Bearer ${this.apiToken}`,
+        Authorization: `Bearer ${this.config.apiToken}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `Quip API error: ${response.status} ${response.statusText} - ${text}`,
-      );
-    }
-
-    return response.json();
+    };
   }
 }
+
+type QuipClientConfig = {
+  host: string;
+  apiToken: string;
+};
 
 export type QuipThread = {
   thread: {
