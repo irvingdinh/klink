@@ -145,5 +145,5 @@ EOF
 ### OpenAI Codex CLI
 
 ```bash 
-codex mcp add klink -- sh -c "cd $HOME/Workspace/git.taservs.net/idinh/klink && ./klink"
+codex mcp add klink -- sh -c "cd $HOME/Workspace/github.com/irvingdinh/klink && ./klink"
 ```

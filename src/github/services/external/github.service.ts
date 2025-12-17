@@ -15,7 +15,7 @@ export class GithubService {
     this.config = {
       host: EnvService.getRequiredEnv(
         "GITHUB_HOST",
-        "Set it to your GitHub Enterprise base URL, e.g. 'https://github.example.com'.",
+        "Set to 'https://api.github.com' for GitHub.com, or your GitHub Enterprise URL (e.g. 'https://github.mycompany.com').",
       ).replace(/\/+$/, ""),
       apiToken: EnvService.getRequiredEnv(
         "GITHUB_API_TOKEN",
@@ -186,7 +186,13 @@ export class GithubService {
   }
 
   private makeUrl(...paths: string[]): string {
-    return `${this.config.host}/api/v3/${paths.filter((p) => p).join("/")}`;
+    const pathSegment = paths.filter((p) => p).join("/");
+    
+    if (this.config.host.includes("api.github.com")) {
+      return `${this.config.host}/${pathSegment}`;
+    }
+    
+    return `${this.config.host}/api/v3/${pathSegment}`;
   }
 
   private makeAuth(options: RequestInit = {}): RequestInit {
