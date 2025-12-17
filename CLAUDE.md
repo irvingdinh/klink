@@ -1,111 +1,225 @@
----
-description: Use Bun instead of Node.js, npm, pnpm, or vite.
-globs: "*.ts, *.tsx, *.html, *.css, *.js, *.jsx, package.json"
-alwaysApply: false
----
+# klink Development Guide
 
-Default to using Bun instead of Node.js.
+This document provides context for AI assistants working on the klink codebase.
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Bun automatically loads .env, so don't use dotenv.
+## Project Overview
 
-## APIs
+klink is an MCP (Model Context Protocol) server built with Bun that provides AI assistants access to productivity tools (Jira, GitHub, Slack, Quip).
 
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
+- **Runtime:** Bun (use `bun` instead of `node`, `npm`, `npx`)
+- **Framework:** `@modelcontextprotocol/sdk`
+- **Validation:** Zod for input schemas
+- **Architecture:** Modular design with singleton services
+
+## Module Structure
+
+Each integration follows this structure:
+
+```
+src/{module}/
+├── services/
+│   └── external/
+│       └── {module}.service.ts    # API client (singleton)
+└── tools/
+    ├── index.ts                   # Registers all tools for this module
+    ├── {action}-{resource}.tool.ts
+    └── ...
+```
+
+### Core Utilities
+
+```
+src/core/
+├── service/
+│   ├── env.service.ts             # EnvService.getRequiredEnv()
+│   ├── file.service.ts            # Temporary file output
+│   └── module-config.service.ts   # --include/--exclude parsing
+└── utils/
+    ├── http.utils.ts              # makeError() for HTTP responses
+    └── tool.utils.ts              # Handler wrappers
+```
+
+## Coding Conventions
+
+### Class Organization
+
+Place exported classes at the top of the file, un-exported classes below:
+
+```typescript
+// Exported singleton getter first
+export const getJiraService = (): JiraService => {
+  if (!instance) instance = new JiraService();
+  return instance;
+};
+
+// Exported class
+export class JiraService {
+  // ...
+}
+
+// Un-exported types at bottom
+type JiraClientConfig = {
+  host: string;
+  apiToken: string;
+};
+```
+
+### Singleton Services
+
+All external service clients use the singleton pattern:
+
+```typescript
+let instance: MyService;
+
+export const getMyService = (): MyService => {
+  if (!instance) instance = new MyService();
+  return instance;
+};
+```
+
+### Handler Wrappers
+
+Tool handlers always use this wrapper pattern:
+
+```typescript
+server.registerTool(
+  "module_action_resource",
+  { description, inputSchema },
+  withErrorHandling(           // Always outermost
+    withTemporaryTextOutput(   // For get/search/list (writes to temp file)
+      "module",
+      "action-resource",
+      async (args) => {
+        const service = getMyService();
+        const result = await service.doSomething(args);
+        return JSON.stringify(result, null, 2);
+      }
+    )
+  )
+);
+```
+
+**Wrapper selection:**
+
+| Operation Type | Wrapper |
+|----------------|---------|
+| `get_*`, `search_*`, `list_*` | `withTemporaryTextOutput` |
+| `create_*`, `update_*`, `delete_*`, `add_*` | `withTextOutput` |
+
+### Error Handling
+
+Do NOT catch errors in handlers. Let them propagate to `withErrorHandling`:
+
+```typescript
+// ❌ Bad
+async (args) => {
+  try {
+    return await service.doSomething(args);
+  } catch (e) {
+    return "Error: " + e.message;
+  }
+}
+
+// ✅ Good
+async (args) => {
+  return await service.doSomething(args);
+}
+```
+
+For custom error messages, throw descriptive errors:
+
+```typescript
+if (!result) {
+  throw new Error(
+    `Issue ${issueIdOrKey} not found. Verify the key exists and you have permission.`
+  );
+}
+```
+
+## Naming Conventions
+
+### Tool Names
+
+Format: `{module}_{action}_{resource}` in `snake_case`
+
+| Pattern | Examples |
+|---------|----------|
+| `{module}_get_{resource}` | `jira_get_issue`, `slack_get_user` |
+| `{module}_search_{resources}` | `jira_search_issues`, `quip_search_documents` |
+| `{module}_list_{resources}` | `slack_list_channels` |
+| `{module}_create_{resource}` | `quip_create_document` |
+| `{module}_add_{resource}` | `slack_add_reaction`, `github_add_pr_comment` |
+
+### File Names
+
+Format: `{action}-{resource}.tool.ts` in `kebab-case`
+
+Examples:
+- `get-issue.tool.ts`
+- `search-issues.tool.ts`
+- `add-pr-comment.tool.ts`
+
+### Parameters
+
+Use `camelCase` for parameter names:
+
+```typescript
+const inputSchema = {
+  issueIdOrKey: z.string().describe("..."),
+  maxResults: z.number().default(50).describe("..."),
+};
+```
+
+## Adding New Tools
+
+1. Read the guidelines:
+   - [how-to-write-mcp-tool-description.md](docs/guidelines/how-to-write-mcp-tool-description.md)
+   - [how-to-write-mcp-tool-handler.md](docs/guidelines/how-to-write-mcp-tool-handler.md)
+
+2. Create the tool file: `src/{module}/tools/{action}-{resource}.tool.ts`
+
+3. Register in `src/{module}/tools/index.ts`
+
+4. Add service method if needed in `src/{module}/services/external/{module}.service.ts`
+
+## Adding New Integrations
+
+1. Create module structure:
+   ```
+   src/{new-module}/
+   ├── services/external/{new-module}.service.ts
+   └── tools/
+       ├── index.ts
+       └── {first-tool}.tool.ts
+   ```
+
+2. Add environment variables in the service constructor using `EnvService.getRequiredEnv()`
+
+3. Register in `src/index.ts`:
+   ```typescript
+   import { registerNewModuleTools } from "./{new-module}/tools";
+   
+   if (moduleConfig.isEnabled("{new-module}")) registerNewModuleTools(server);
+   ```
 
 ## Testing
 
-Use `bun test` to run tests.
+Test tools via stdio with JSON-RPC:
 
-```ts#index.test.ts
-import { test, expect } from "bun:test";
-
-test("hello world", () => {
-  expect(1).toBe(1);
-});
+```bash
+cat << 'EOF' | bun run ./src/index.ts
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"test","version":"0.0.0"}}}
+{"jsonrpc":"2.0","method":"notifications/initialized"}
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"jira_get_issue","arguments":{"issueIdOrKey":"PROJ-123"}}}
+EOF
 ```
 
-## Frontend
+## Commands
 
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
-
-Server:
-
-```ts#index.ts
-import index from "./index.html"
-
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
+```bash
+bun install          # Install dependencies
+bun run src/index.ts # Run in development
+bun run lint         # Check linting
+bun run lint:fix     # Fix linting issues
+bun build --compile --minify src/index.ts --outfile klink  # Build binary
 ```
-
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
-
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
-
-With the following `frontend.tsx`:
-
-```tsx#frontend.tsx
-import React from "react";
-
-// import .css files directly and it works
-import './index.css';
-
-import { createRoot } from "react-dom/client";
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
