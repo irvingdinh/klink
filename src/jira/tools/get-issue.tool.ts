@@ -46,7 +46,7 @@ export const registerGetIssueTool = (server: McpServer) => {
             fields,
             expand,
           });
-          
+
           return JSON.stringify(issue, null, 2);
         },
       ),

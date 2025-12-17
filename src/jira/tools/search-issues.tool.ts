@@ -63,7 +63,7 @@ export const registerSearchIssuesTool = (server: McpServer) => {
             fields,
             expand,
           });
-          
+
           return JSON.stringify(result, null, 2);
         },
       ),
