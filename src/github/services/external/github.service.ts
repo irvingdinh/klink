@@ -70,7 +70,7 @@ export class GithubService {
       throw await makeError("getPullRequestComments", response);
     }
 
-    return response.json();
+    return response.json() as Promise<any[]>;
   }
 
   async getPullRequestDiff({
@@ -187,11 +187,11 @@ export class GithubService {
 
   private makeUrl(...paths: string[]): string {
     const pathSegment = paths.filter((p) => p).join("/");
-    
+
     if (this.config.host.includes("api.github.com")) {
       return `${this.config.host}/${pathSegment}`;
     }
-    
+
     return `${this.config.host}/api/v3/${pathSegment}`;
   }
 
