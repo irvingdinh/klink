@@ -9,6 +9,7 @@ A modular MCP (Model Context Protocol) server that connects your productivity to
 | **Jira** | 2 | Get issues, search with JQL |
 | **GitHub** | 4 | Pull requests, diffs, reviews, inline comments |
 | **Slack** | 8 | Channels, messages, threads, reactions, file uploads |
+| **Telegram** | 8 | Messages, files, reactions, chat info |
 | **Quip** | 9 | Documents, folders, search, comments, editing |
 
 ## Quick Start
@@ -35,6 +36,9 @@ GITHUB_API_TOKEN=ghp_your-personal-access-token
 
 # Slack
 SLACK_API_TOKEN=xoxb-your-bot-token
+
+# Telegram
+TELEGRAM_BOT_TOKEN=123456789:AbC...
 
 # Quip
 QUIP_API_TOKEN=your-quip-api-token
@@ -77,6 +81,12 @@ bun build --compile --minify src/index.ts --outfile klink
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `SLACK_API_TOKEN` | Yes | Bot token starting with `xoxb-`. Create a [Slack App](https://api.slack.com/apps) with appropriate scopes |
+
+#### Telegram
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TELEGRAM_BOT_TOKEN` | Yes | Token from [@BotFather](https://t.me/BotFather) |
 
 #### Quip
 
@@ -129,6 +139,19 @@ Control which modules are loaded at startup:
 | `slack_add_reaction` | Add an emoji reaction to a message |
 | `slack_upload_file` | Upload a local file to a channel or thread |
 
+### Telegram
+
+| Tool | Description |
+|------|-------------|
+| `telegram_get_chat` | Get chat info by ID or username |
+| `telegram_send_message` | Send a text message |
+| `telegram_update_message` | Edit a text message |
+| `telegram_delete_message` | Delete a message |
+| `telegram_send_document` | Send a file/document |
+| `telegram_send_photo` | Send a photo inline |
+| `telegram_download_file` | Download a file by ID |
+| `telegram_set_message_reaction` | React to a message |
+
 ### Quip
 
 | Tool | Description |
@@ -161,6 +184,7 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
         "GITHUB_HOST": "https://api.github.com",
         "GITHUB_API_TOKEN": "ghp_your-token",
         "SLACK_API_TOKEN": "xoxb-your-token",
+        "TELEGRAM_BOT_TOKEN": "your-bot-token",
         "QUIP_API_TOKEN": "your-token"
       }
     }
@@ -184,7 +208,8 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
         "JIRA_API_TOKEN": "your-token",
         "GITHUB_HOST": "https://api.github.com",
         "GITHUB_API_TOKEN": "ghp_your-token",
-        "SLACK_API_TOKEN": "xoxb-your-token"
+        "SLACK_API_TOKEN": "xoxb-your-token",
+        "TELEGRAM_BOT_TOKEN": "your-bot-token"
       }
     }
   }
@@ -219,6 +244,9 @@ src/
 ├── slack/
 │   ├── services/external/      # Slack Web API client
 │   └── tools/                  # slack_* tool definitions
+├── telegram/
+│   ├── services/external/      # Telegram API client
+│   └── tools/                  # telegram_* tool definitions
 └── quip/
     ├── services/external/      # Quip API client
     └── tools/                  # quip_* tool definitions

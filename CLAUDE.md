@@ -4,7 +4,7 @@ This document provides context for AI assistants working on the klink codebase.
 
 ## Project Overview
 
-klink is an MCP (Model Context Protocol) server built with Bun that provides AI assistants access to productivity tools (Jira, GitHub, Slack, Quip).
+klink is an MCP (Model Context Protocol) server built with Bun that provides AI assistants access to productivity tools (Jira, GitHub, Slack, Telegram, Quip).
 
 - **Runtime:** Bun (use `bun` instead of `node`, `npm`, `npx`)
 - **Framework:** `@modelcontextprotocol/sdk`
@@ -182,6 +182,9 @@ const inputSchema = {
 
 4. Add service method if needed in `src/{module}/services/external/{module}.service.ts`
 
+5. Update documentation:
+   - Add tool to `README.md` in "Available Tools" section
+
 ## Adding New Integrations
 
 1. Create module structure:
@@ -201,6 +204,10 @@ const inputSchema = {
    
    if (moduleConfig.isEnabled("{new-module}")) registerNewModuleTools(server);
    ```
+
+4. Update documentation:
+   - Add to `README.md`: Features table, Environment variables, Tools list
+   - Add to `CLAUDE.md`: Project Overview, Module Structure diagram
 
 ## Testing
 
