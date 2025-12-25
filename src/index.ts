@@ -4,6 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { getModuleConfigService } from "./core/service/module-config.service.ts";
 import { registerGithubTools } from "./github/tools";
 import { registerJiraTools } from "./jira/tools";
+import { registerPocketbaseTools } from "./pocketbase/tools";
 import { registerQuipTools } from "./quip/tools";
 import { registerSlackTools } from "./slack/tools";
 import { registerTelegramTools } from "./telegram/tools";
@@ -19,6 +20,7 @@ if (moduleConfig.isEnabled("jira")) registerJiraTools(server);
 if (moduleConfig.isEnabled("quip")) registerQuipTools(server);
 if (moduleConfig.isEnabled("slack")) registerSlackTools(server);
 if (moduleConfig.isEnabled("telegram")) registerTelegramTools(server);
+if (moduleConfig.isEnabled("pocketbase")) registerPocketbaseTools(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

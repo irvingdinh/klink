@@ -1,10 +1,10 @@
 # klink Development Guide
 
-This document provides context for AI assistants working on the klink codebase.
+This document provides context for AI assistants working on the klink codebase. Automatically use context7 for code generation and library documentation.
 
 ## Project Overview
 
-klink is an MCP (Model Context Protocol) server built with Bun that provides AI assistants access to productivity tools (Jira, GitHub, Slack, Telegram, Quip).
+klink is an MCP (Model Context Protocol) server built with Bun that provides AI assistants access to productivity tools (Jira, GitHub, Slack, Telegram, Quip, PocketBase).
 
 - **Runtime:** Bun (use `bun` instead of `node`, `npm`, `npx`)
 - **Framework:** `@modelcontextprotocol/sdk`

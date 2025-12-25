@@ -1,6 +1,6 @@
 # klink
 
-A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Jira, GitHub, Slack, and Quip into Claude, Cursor, and other MCP-compatible clients.
+A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Jira, GitHub, Slack, Telegram, Quip, and Pocketbase into Claude, Cursor, and other MCP-compatible clients.
 
 ## Features
 
@@ -11,6 +11,7 @@ A modular MCP (Model Context Protocol) server that connects your productivity to
 | **Slack** | 8 | Channels, messages, threads, reactions, file uploads |
 | **Telegram** | 8 | Messages, files, reactions, chat info |
 | **Quip** | 9 | Documents, folders, search, comments, editing |
+| **Pocketbase** | 21 | Collections, records, settings, logs, files, auth |
 
 ## Quick Start
 
@@ -42,6 +43,11 @@ TELEGRAM_BOT_TOKEN=123456789:AbC...
 
 # Quip
 QUIP_API_TOKEN=your-quip-api-token
+
+# Pocketbase
+POCKETBASE_HOST=https://pb.example.com
+POCKETBASE_ADMIN_EMAIL=admin@example.com
+POCKETBASE_ADMIN_PASSWORD=your-admin-password
 ```
 
 ### 3. Run
@@ -93,6 +99,14 @@ bun build --compile --minify src/index.ts --outfile klink
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `QUIP_API_TOKEN` | Yes | [Personal API token](https://quip.com/dev/token) |
+
+#### Pocketbase
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `POCKETBASE_HOST` | Yes | Your Pocketbase base URL (e.g., `https://pb.example.com`) |
+| `POCKETBASE_ADMIN_EMAIL` | Yes | Superuser/admin email address |
+| `POCKETBASE_ADMIN_PASSWORD` | Yes | Superuser/admin password |
 
 ### CLI Options
 
@@ -166,6 +180,32 @@ Control which modules are loaded at startup:
 | `quip_edit_document` | Edit a specific section of a document |
 | `quip_add_comment` | Add a comment or inline annotation |
 
+### Pocketbase
+
+| Tool | Description |
+|------|-------------|
+| `pocketbase_list_collections` | List all collections with schemas |
+| `pocketbase_get_collection` | Get a single collection by ID/name |
+| `pocketbase_create_collection` | Create a new collection with schema |
+| `pocketbase_update_collection` | Update collection schema/rules |
+| `pocketbase_delete_collection` | Delete a collection and all records |
+| `pocketbase_truncate_collection` | Delete all records, keep schema |
+| `pocketbase_list_records` | List/search records with filtering |
+| `pocketbase_get_record` | Get a single record by ID |
+| `pocketbase_create_record` | Create a new record |
+| `pocketbase_update_record` | Update an existing record |
+| `pocketbase_delete_record` | Delete a record |
+| `pocketbase_get_settings` | Get all app settings |
+| `pocketbase_update_settings` | Update app settings |
+| `pocketbase_test_s3` | Test S3 storage connection |
+| `pocketbase_test_email` | Send test email |
+| `pocketbase_list_logs` | List request logs |
+| `pocketbase_get_log` | Get a single log entry |
+| `pocketbase_get_log_stats` | Get aggregated log statistics |
+| `pocketbase_get_file_url` | Generate file download URL |
+| `pocketbase_generate_file_token` | Generate protected file token |
+| `pocketbase_impersonate_user` | Generate impersonation token |
+
 ## Client Setup
 
 ### Claude Desktop
@@ -185,7 +225,10 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
         "GITHUB_API_TOKEN": "ghp_your-token",
         "SLACK_API_TOKEN": "xoxb-your-token",
         "TELEGRAM_BOT_TOKEN": "your-bot-token",
-        "QUIP_API_TOKEN": "your-token"
+        "QUIP_API_TOKEN": "your-token",
+        "POCKETBASE_HOST": "https://pb.example.com",
+        "POCKETBASE_ADMIN_EMAIL": "admin@example.com",
+        "POCKETBASE_ADMIN_PASSWORD": "your-password"
       }
     }
   }
@@ -209,7 +252,10 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
         "GITHUB_HOST": "https://api.github.com",
         "GITHUB_API_TOKEN": "ghp_your-token",
         "SLACK_API_TOKEN": "xoxb-your-token",
-        "TELEGRAM_BOT_TOKEN": "your-bot-token"
+        "TELEGRAM_BOT_TOKEN": "your-bot-token",
+        "POCKETBASE_HOST": "https://pb.example.com",
+        "POCKETBASE_ADMIN_EMAIL": "admin@example.com",
+        "POCKETBASE_ADMIN_PASSWORD": "your-password"
       }
     }
   }
@@ -247,9 +293,12 @@ src/
 ├── telegram/
 │   ├── services/external/      # Telegram API client
 │   └── tools/                  # telegram_* tool definitions
-└── quip/
-    ├── services/external/      # Quip API client
-    └── tools/                  # quip_* tool definitions
+├── quip/
+│   ├── services/external/      # Quip API client
+│   └── tools/                  # quip_* tool definitions
+└── pocketbase/
+    ├── services/external/      # Pocketbase API client
+    └── tools/                  # pocketbase_* tool definitions
 ```
 
 ## Development
