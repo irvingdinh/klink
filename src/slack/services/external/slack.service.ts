@@ -1,4 +1,5 @@
-import { basename } from "node:path";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
 
 import { WebClient } from "@slack/web-api";
 
@@ -13,13 +14,14 @@ export const getSlackService = (): SlackService => {
 
 export class SlackService {
   private readonly client: WebClient;
+  private readonly token: string;
 
   constructor() {
-    const token = EnvService.getRequiredEnv(
+    this.token = EnvService.getRequiredEnv(
       "SLACK_API_TOKEN",
       "Set it to your Slack bot token (xoxb-...).",
     );
-    this.client = new WebClient(token);
+    this.client = new WebClient(this.token);
   }
 
   async getConversationHistory({
@@ -185,5 +187,60 @@ export class SlackService {
     }
 
     return result;
+  }
+
+  async getFileInfo({ fileId }: { fileId: string }) {
+    const result = await this.client.files.info({
+      file: fileId,
+    });
+
+    if (!result.ok) {
+      throw new Error(result.error ?? "Unknown Slack API error");
+    }
+
+    return result;
+  }
+
+  async downloadFile({
+    fileId,
+    destinationPath,
+  }: {
+    fileId: string;
+    destinationPath?: string;
+  }): Promise<string> {
+    const fileInfo = await this.getFileInfo({ fileId });
+    const file = fileInfo.file;
+
+    if (!file) {
+      throw new Error(`File ${fileId} not found or you don't have access.`);
+    }
+
+    const downloadUrl = file.url_private_download ?? file.url_private;
+    if (!downloadUrl) {
+      throw new Error(
+        `File ${fileId} does not have a downloadable URL. ` +
+          "It may be an external file or you don't have permission.",
+      );
+    }
+
+    const response = await fetch(downloadUrl, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to download file: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const fileName = file.name ?? `slack-file-${fileId}`;
+    const outputPath = destinationPath ?? join(tmpdir(), fileName);
+
+    const arrayBuffer = await response.arrayBuffer();
+    await Bun.write(outputPath, arrayBuffer);
+
+    return outputPath;
   }
 }

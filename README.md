@@ -8,7 +8,7 @@ A modular MCP (Model Context Protocol) server that connects your productivity to
 |-------------|-------|--------------|
 | **Jira** | 2 | Get issues, search with JQL |
 | **GitHub** | 4 | Pull requests, diffs, reviews, inline comments |
-| **Slack** | 8 | Channels, messages, threads, reactions, file uploads |
+| **Slack** | 9 | Channels, messages, threads, reactions, file uploads/downloads |
 | **Telegram** | 8 | Messages, files, reactions, chat info |
 | **Quip** | 9 | Documents, folders, search, comments, editing |
 | **Pocketbase** | 21 | Collections, records, settings, logs, files, auth |
@@ -152,6 +152,7 @@ Control which modules are loaded at startup:
 | `slack_update_message` | Edit an existing message |
 | `slack_add_reaction` | Add an emoji reaction to a message |
 | `slack_upload_file` | Upload a local file to a channel or thread |
+| `slack_download_file` | Download a file by its file ID |
 
 ### Telegram
 
