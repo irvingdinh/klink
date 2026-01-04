@@ -122,6 +122,39 @@ Control which modules are loaded at startup:
 
 > **Note:** `--include` and `--exclude` are mutually exclusive.
 
+### Module Selection via Environment Variables
+
+As an alternative to CLI arguments, you can use environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `KLINK_INCLUDE` | Comma-separated list of modules to include (e.g., `github,jira`) |
+| `KLINK_EXCLUDE` | Comma-separated list of modules to exclude (e.g., `quip,slack`) |
+
+**Precedence:** CLI arguments (`--include`, `--exclude`) take priority over environment variables.
+
+**Example:**
+
+```bash
+export KLINK_INCLUDE=github,jira
+./klink
+```
+
+Or in your MCP client config:
+
+```json
+{
+  "mcpServers": {
+    "klink": {
+      "command": "/path/to/klink",
+      "env": {
+        "KLINK_EXCLUDE": "quip,telegram"
+      }
+    }
+  }
+}
+```
+
 ## Available Tools
 
 ### Jira
