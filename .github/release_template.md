@@ -23,7 +23,7 @@ chmod a+x "$HOME/Workspace/github.com/irvingdinh/klink/releases/tag/{{VERSION}}/
 
 ```bash
 claude mcp remove klink
-claude mcp add klink -- sh -c "cd $HOME/Workspace/github.com/irvingdinh/klink && ./releases/tag/{{VERSION}}/klink-{{VERSION}}-linux-x64"
+claude mcp add --scope user klink -- sh -c "cd $HOME/Workspace/github.com/irvingdinh/klink && ./releases/tag/{{VERSION}}/klink-{{VERSION}}-linux-x64"
 ```
 
 **OpenAI Codex CLI**
@@ -37,5 +37,5 @@ codex mcp add klink -- sh -c "cd $HOME/Workspace/github.com/irvingdinh/klink && 
 
 ```bash
 gemini mcp remove klink
-gemini mcp add klink -- sh -c "cd $HOME/Workspace/github.com/irvingdinh/klink && ./releases/tag/{{VERSION}}/klink-{{VERSION}}-linux-x64"
+gemini mcp add --scope user --type stdio klink sh -c "cd $HOME/Workspace/github.com/irvingdinh/klink && ./releases/tag/{{VERSION}}/klink-{{VERSION}}-linux-x64"
 ```
