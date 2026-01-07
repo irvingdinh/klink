@@ -1,6 +1,6 @@
 # klink
 
-A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Jira, GitHub, Slack, Telegram, Quip, and Pocketbase into Claude, Cursor, and other MCP-compatible clients.
+A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Jira, GitHub, Slack, Telegram, Quip, Pocketbase, and Replicate into Claude, Cursor, and other MCP-compatible clients.
 
 ## Features
 
@@ -12,6 +12,7 @@ A modular MCP (Model Context Protocol) server that connects your productivity to
 | **Telegram** | 8 | Messages, files, reactions, chat info |
 | **Quip** | 9 | Documents, folders, search, comments, editing |
 | **Pocketbase** | 21 | Collections, records, settings, logs, files, auth |
+| **Replicate** | 1 | AI image generation with Google nano-banana |
 
 ## Quick Start
 
@@ -48,6 +49,9 @@ QUIP_API_TOKEN=your-quip-api-token
 POCKETBASE_HOST=https://pb.example.com
 POCKETBASE_ADMIN_EMAIL=admin@example.com
 POCKETBASE_ADMIN_PASSWORD=your-admin-password
+
+# Replicate
+REPLICATE_API_TOKEN=r8_your-api-token
 ```
 
 ### 3. Run
@@ -107,6 +111,12 @@ bun build --compile --minify src/index.ts --outfile klink
 | `POCKETBASE_HOST` | Yes | Your Pocketbase base URL (e.g., `https://pb.example.com`) |
 | `POCKETBASE_ADMIN_EMAIL` | Yes | Superuser/admin email address |
 | `POCKETBASE_ADMIN_PASSWORD` | Yes | Superuser/admin password |
+
+#### Replicate
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `REPLICATE_API_TOKEN` | Yes | [API token](https://replicate.com/account/api-tokens) from Replicate |
 
 ### CLI Options
 
@@ -207,6 +217,12 @@ Control which modules are loaded at startup:
 | `pocketbase_generate_file_token` | Generate protected file token |
 | `pocketbase_impersonate_user` | Generate impersonation token |
 
+### Replicate
+
+| Tool | Description |
+|------|-------------|
+| `replicate_generate_image` | Generate or edit images using Google's nano-banana model |
+
 ## Client Setup
 
 ### Claude Desktop
@@ -229,7 +245,8 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
         "QUIP_API_TOKEN": "your-token",
         "POCKETBASE_HOST": "https://pb.example.com",
         "POCKETBASE_ADMIN_EMAIL": "admin@example.com",
-        "POCKETBASE_ADMIN_PASSWORD": "your-password"
+        "POCKETBASE_ADMIN_PASSWORD": "your-password",
+        "REPLICATE_API_TOKEN": "r8_your-token"
       }
     }
   }
@@ -256,7 +273,8 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
         "TELEGRAM_BOT_TOKEN": "your-bot-token",
         "POCKETBASE_HOST": "https://pb.example.com",
         "POCKETBASE_ADMIN_EMAIL": "admin@example.com",
-        "POCKETBASE_ADMIN_PASSWORD": "your-password"
+        "POCKETBASE_ADMIN_PASSWORD": "your-password",
+        "REPLICATE_API_TOKEN": "r8_your-token"
       }
     }
   }
@@ -297,9 +315,12 @@ src/
 ├── quip/
 │   ├── services/external/      # Quip API client
 │   └── tools/                  # quip_* tool definitions
-└── pocketbase/
-    ├── services/external/      # Pocketbase API client
-    └── tools/                  # pocketbase_* tool definitions
+├── pocketbase/
+│   ├── services/external/      # Pocketbase API client
+│   └── tools/                  # pocketbase_* tool definitions
+└── replicate/
+    ├── services/external/      # Replicate API client
+    └── tools/                  # replicate_* tool definitions
 ```
 
 ## Development
