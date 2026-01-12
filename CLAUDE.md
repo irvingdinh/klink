@@ -1,6 +1,8 @@
-# klink Development Guide
+# CLAUDE.md
 
-This document provides context for AI assistants working on the klink codebase. Automatically use context7 for code generation and library documentation.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+Automatically use context7 for code generation and library documentation.
 
 ## Project Overview
 

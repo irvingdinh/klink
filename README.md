@@ -118,19 +118,27 @@ bun build --compile --minify src/index.ts --outfile klink
 |----------|----------|-------------|
 | `REPLICATE_API_TOKEN` | Yes | [API token](https://replicate.com/account/api-tokens) from Replicate |
 
-### CLI Options
+### Module Selection
 
-Control which modules are loaded at startup:
+Control which modules are loaded using CLI options or environment variables:
+
+| Method | Include | Exclude |
+|--------|---------|---------|
+| CLI | `--include jira,github` | `--exclude quip,slack` |
+| Env | `KLINK_INCLUDE=jira,github` | `KLINK_EXCLUDE=quip,slack` |
 
 ```bash
-# Only enable specific modules
+# CLI examples
 ./klink --include jira,github
-
-# Enable all except specific modules
 ./klink --exclude quip,slack
+
+# Environment variable examples
+KLINK_INCLUDE=jira,github ./klink
+KLINK_EXCLUDE=quip,slack ./klink
 ```
 
-> **Note:** `--include` and `--exclude` are mutually exclusive.
+> **Priority:** Environment variables override CLI options if both are set.
+> **Note:** `include` and `exclude` are mutually exclusive (regardless of source).
 
 ## Available Tools
 
