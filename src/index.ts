@@ -4,6 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { getModuleConfigService } from "./core/service/module-config.service.ts";
 import { registerGithubTools } from "./github/tools";
 import { registerJiraTools } from "./jira/tools";
+import { registerN8nTools } from "./n8n/tools";
 import { registerPocketbaseTools } from "./pocketbase/tools";
 import { registerQuipTools } from "./quip/tools";
 import { registerReplicateTools } from "./replicate/tools";
@@ -18,6 +19,7 @@ const server = new McpServer({
 const moduleConfig = getModuleConfigService();
 if (moduleConfig.isEnabled("github")) registerGithubTools(server);
 if (moduleConfig.isEnabled("jira")) registerJiraTools(server);
+if (moduleConfig.isEnabled("n8n")) registerN8nTools(server);
 if (moduleConfig.isEnabled("quip")) registerQuipTools(server);
 if (moduleConfig.isEnabled("slack")) registerSlackTools(server);
 if (moduleConfig.isEnabled("telegram")) registerTelegramTools(server);

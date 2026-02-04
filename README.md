@@ -1,6 +1,6 @@
 # klink
 
-A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Jira, GitHub, Slack, Telegram, Quip, Pocketbase, and Replicate into Claude, Cursor, and other MCP-compatible clients.
+A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Jira, GitHub, Slack, Telegram, Quip, Pocketbase, Replicate, and n8n into Claude, Cursor, and other MCP-compatible clients.
 
 ## Features
 
@@ -13,6 +13,7 @@ A modular MCP (Model Context Protocol) server that connects your productivity to
 | **Quip** | 9 | Documents, folders, search, comments, editing |
 | **Pocketbase** | 21 | Collections, records, settings, logs, files, auth |
 | **Replicate** | 1 | AI image generation with Google nano-banana |
+| **n8n** | 11 | Workflows, executions, tags, activate/deactivate |
 
 ## Quick Start
 
@@ -52,6 +53,10 @@ POCKETBASE_ADMIN_PASSWORD=your-admin-password
 
 # Replicate
 REPLICATE_API_TOKEN=r8_your-api-token
+
+# n8n
+N8N_HOST=https://n8n.example.com
+N8N_API_KEY=your-n8n-api-key
 ```
 
 ### 3. Run
@@ -117,6 +122,13 @@ bun build --compile --minify src/index.ts --outfile klink
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `REPLICATE_API_TOKEN` | Yes | [API token](https://replicate.com/account/api-tokens) from Replicate |
+
+#### n8n
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `N8N_HOST` | Yes | Your n8n instance URL (e.g., `https://n8n.example.com`) |
+| `N8N_API_KEY` | Yes | API key from n8n Settings > API |
 
 ### Module Selection
 
@@ -231,6 +243,22 @@ KLINK_EXCLUDE=quip,slack ./klink
 |------|-------------|
 | `replicate_generate_image` | Generate or edit images using Google's nano-banana model |
 
+### n8n
+
+| Tool | Description |
+|------|-------------|
+| `n8n_list_workflows` | List workflows, optionally filter by active status or tags |
+| `n8n_get_workflow` | Get a single workflow with nodes, connections, and settings |
+| `n8n_create_workflow` | Create a new workflow |
+| `n8n_update_workflow` | Update an existing workflow |
+| `n8n_delete_workflow` | Delete a workflow |
+| `n8n_activate_workflow` | Activate a workflow to run on triggers |
+| `n8n_deactivate_workflow` | Deactivate a workflow |
+| `n8n_list_executions` | List workflow executions with optional filters |
+| `n8n_get_execution` | Get details of a specific execution |
+| `n8n_delete_execution` | Delete an execution record |
+| `n8n_list_tags` | List all tags available in the instance |
+
 ## Client Setup
 
 ### Claude Desktop
@@ -254,7 +282,9 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
         "POCKETBASE_HOST": "https://pb.example.com",
         "POCKETBASE_ADMIN_EMAIL": "admin@example.com",
         "POCKETBASE_ADMIN_PASSWORD": "your-password",
-        "REPLICATE_API_TOKEN": "r8_your-token"
+        "REPLICATE_API_TOKEN": "r8_your-token",
+        "N8N_HOST": "https://n8n.example.com",
+        "N8N_API_KEY": "your-n8n-api-key"
       }
     }
   }
@@ -282,7 +312,9 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
         "POCKETBASE_HOST": "https://pb.example.com",
         "POCKETBASE_ADMIN_EMAIL": "admin@example.com",
         "POCKETBASE_ADMIN_PASSWORD": "your-password",
-        "REPLICATE_API_TOKEN": "r8_your-token"
+        "REPLICATE_API_TOKEN": "r8_your-token",
+        "N8N_HOST": "https://n8n.example.com",
+        "N8N_API_KEY": "your-n8n-api-key"
       }
     }
   }
@@ -326,9 +358,12 @@ src/
 ├── pocketbase/
 │   ├── services/external/      # Pocketbase API client
 │   └── tools/                  # pocketbase_* tool definitions
-└── replicate/
-    ├── services/external/      # Replicate API client
-    └── tools/                  # replicate_* tool definitions
+├── replicate/
+│   ├── services/external/      # Replicate API client
+│   └── tools/                  # replicate_* tool definitions
+└── n8n/
+    ├── services/external/      # n8n API client
+    └── tools/                  # n8n_* tool definitions
 ```
 
 ## Development
