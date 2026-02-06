@@ -16,55 +16,17 @@ A modular MCP (Model Context Protocol) server that connects your productivity to
 
 ## Quick Start
 
-### 1. Install Dependencies
+Use klink directly via npx - no installation required:
 
 ```bash
-bun install
+npx klink@latest
 ```
 
-### 2. Configure Environment
-
-Create a `.env` file with credentials for the integrations you want to use:
+Or install globally:
 
 ```bash
-# Jira
-JIRA_HOST=https://your-org.atlassian.net
-JIRA_EMAIL_ADDRESS=you@company.com
-JIRA_API_TOKEN=your-atlassian-api-token
-
-# GitHub
-GITHUB_HOST=https://api.github.com
-GITHUB_API_TOKEN=ghp_your-personal-access-token
-
-# Slack
-SLACK_API_TOKEN=xoxb-your-bot-token
-
-# Telegram
-TELEGRAM_BOT_TOKEN=123456789:AbC...
-
-# Quip
-QUIP_API_TOKEN=your-quip-api-token
-
-# Pocketbase
-POCKETBASE_HOST=https://pb.example.com
-POCKETBASE_ADMIN_EMAIL=admin@example.com
-POCKETBASE_ADMIN_PASSWORD=your-admin-password
-
-# Replicate
-REPLICATE_API_TOKEN=r8_your-api-token
-```
-
-### 3. Run
-
-```bash
-bun run src/index.ts
-```
-
-Or build a standalone binary:
-
-```bash
-bun build --compile --minify src/index.ts --outfile klink
-./klink
+npm install -g klink
+klink
 ```
 
 ## Configuration
@@ -129,12 +91,12 @@ Control which modules are loaded using CLI options or environment variables:
 
 ```bash
 # CLI examples
-./klink --include jira,github
-./klink --exclude quip,slack
+npx klink@latest -- --include jira,github
+npx klink@latest -- --exclude quip,slack
 
 # Environment variable examples
-KLINK_INCLUDE=jira,github ./klink
-KLINK_EXCLUDE=quip,slack ./klink
+KLINK_INCLUDE=jira,github npx klink@latest
+KLINK_EXCLUDE=quip,slack npx klink@latest
 ```
 
 > **Priority:** Environment variables override CLI options if both are set.
@@ -241,7 +203,8 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
 {
   "mcpServers": {
     "klink": {
-      "command": "/path/to/klink",
+      "command": "npx",
+      "args": ["-y", "klink@latest"],
       "env": {
         "JIRA_HOST": "https://your-org.atlassian.net",
         "JIRA_EMAIL_ADDRESS": "you@company.com",
@@ -269,8 +232,8 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
 {
   "mcpServers": {
     "klink": {
-      "command": "/path/to/klink",
-      "args": ["--exclude", "quip"],
+      "command": "npx",
+      "args": ["-y", "klink@latest", "--", "--exclude", "quip"],
       "env": {
         "JIRA_HOST": "https://your-org.atlassian.net",
         "JIRA_EMAIL_ADDRESS": "you@company.com",
@@ -292,7 +255,7 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
 ### OpenAI Codex CLI
 
 ```bash
-codex mcp add klink -- sh -c "cd /path/to/klink && ./klink"
+codex mcp add klink -- npx -y klink@latest
 ```
 
 ## Architecture
@@ -333,16 +296,28 @@ src/
 
 ## Development
 
+### Setup
+
+```bash
+npm install
+```
+
 ### Testing Tools
 
 Test MCP tools via stdio using JSON-RPC messages:
 
 ```bash
-cat << 'EOF' | bun run ./src/index.ts
+cat << 'EOF' | node dist/index.js
 {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"stdio-test","version":"0.0.0"}}}
 {"jsonrpc":"2.0","method":"notifications/initialized"}
 {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"jira_get_issue","arguments":{"issueIdOrKey":"PROJ-123"}}}
 EOF
+```
+
+### Building
+
+```bash
+npm run build       # Build with tsup
 ```
 
 ### Guidelines
@@ -353,8 +328,8 @@ EOF
 ### Linting
 
 ```bash
-bun run lint        # Check for issues
-bun run lint:fix    # Auto-fix issues
+npm run lint        # Check for issues
+npm run lint:fix    # Auto-fix issues
 ```
 
 ## License

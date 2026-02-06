@@ -1,5 +1,6 @@
-import { tmpdir } from "os";
-import { join } from "path";
+import { writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 export class FileService {
   static async writeTemporaryTextOutput(
@@ -9,7 +10,7 @@ export class FileService {
   ): Promise<string> {
     const fileName = `${moduleRef}-${toolRef}-${crypto.randomUUID()}.txt`;
     const filePath = join(tmpdir(), fileName);
-    await Bun.write(filePath, payload);
+    await writeFile(filePath, payload);
     return filePath;
   }
 }

@@ -1,3 +1,4 @@
+import { writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
@@ -239,7 +240,7 @@ export class SlackService {
     const outputPath = destinationPath ?? join(tmpdir(), fileName);
 
     const arrayBuffer = await response.arrayBuffer();
-    await Bun.write(outputPath, arrayBuffer);
+    await writeFile(outputPath, Buffer.from(arrayBuffer));
 
     return outputPath;
   }

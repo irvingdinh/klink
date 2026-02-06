@@ -6,9 +6,10 @@ Automatically use context7 for code generation and library documentation.
 
 ## Project Overview
 
-klink is an MCP (Model Context Protocol) server built with Bun that provides AI assistants access to productivity tools (Jira, GitHub, Slack, Telegram, Quip, PocketBase).
+klink is an MCP (Model Context Protocol) server built with Node.js that provides AI assistants access to productivity tools (Jira, GitHub, Slack, Telegram, Quip, PocketBase, Replicate, n8n). Distributed via npm as `klink` (`npx klink@latest`).
 
-- **Runtime:** Bun (use `bun` instead of `node`, `npm`, `npx`)
+- **Runtime:** Node.js (>=18)
+- **Build:** tsup (esbuild wrapper)
 - **Framework:** `@modelcontextprotocol/sdk`
 - **Validation:** Zod for input schemas
 - **Architecture:** Modular design with singleton services
@@ -216,7 +217,8 @@ const inputSchema = {
 Test tools via stdio with JSON-RPC:
 
 ```bash
-cat << 'EOF' | bun run ./src/index.ts
+npm run build
+cat << 'EOF' | node dist/index.js
 {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"test","version":"0.0.0"}}}
 {"jsonrpc":"2.0","method":"notifications/initialized"}
 {"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"jira_get_issue","arguments":{"issueIdOrKey":"PROJ-123"}}}
@@ -226,9 +228,8 @@ EOF
 ## Commands
 
 ```bash
-bun install          # Install dependencies
-bun run src/index.ts # Run in development
-bun run lint         # Check linting
-bun run lint:fix     # Fix linting issues
-bun build --compile --minify src/index.ts --outfile klink  # Build binary
+npm install          # Install dependencies
+npm run build        # Build with tsup
+npm run lint         # Check linting
+npm run lint:fix     # Fix linting issues
 ```

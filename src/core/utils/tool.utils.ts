@@ -1,3 +1,4 @@
+import { access, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
@@ -82,13 +83,14 @@ export const resolveContent = async (
     throw new Error(`Either ${paramName} or ${paramName}File is required.`);
   }
   if (contentFile) {
-    const file = Bun.file(contentFile);
-    if (!(await file.exists())) {
+    try {
+      await access(contentFile);
+    } catch {
       throw new Error(
         `File not found: ${contentFile}. Ensure the file exists and the path is absolute.`,
       );
     }
-    return await file.text();
+    return await readFile(contentFile, "utf-8");
   }
   return content!;
 };

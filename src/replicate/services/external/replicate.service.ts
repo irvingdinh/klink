@@ -1,5 +1,7 @@
+import { spawn } from "node:child_process";
+import { access, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { extname, join } from "node:path";
 
 import { EnvService } from "../../../core/service/env.service.ts";
 import { makeError } from "../../../core/utils/http.utils.ts";
@@ -101,14 +103,21 @@ export class ReplicateService {
   }
 
   private async imageToDataUri(filePath: string): Promise<string> {
-    const file = Bun.file(filePath);
-    if (!(await file.exists())) {
+    try {
+      await access(filePath);
+    } catch {
       throw new Error(`Image file not found: ${filePath}`);
     }
 
-    const buffer = await file.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
-    const mimeType = file.type || "image/jpeg";
+    const buffer = await readFile(filePath);
+    const base64 = buffer.toString("base64");
+    const ext = extname(filePath).toLowerCase();
+    const mimeType =
+      ext === ".png"
+        ? "image/png"
+        : ext === ".jpg" || ext === ".jpeg"
+          ? "image/jpeg"
+          : "image/jpeg";
     return `data:${mimeType};base64,${base64}`;
   }
 
@@ -118,23 +127,27 @@ export class ReplicateService {
       `replicate-${crypto.randomUUID()}.${format}`,
     );
 
-    const curlPath = Bun.which("curl");
+    const hasCurl = await this.hasCurl();
 
-    if (curlPath) {
-      // Use curl for downloading because Bun's fetch has connectivity issues
-      // with replicate.delivery CDN domain
-      const proc = Bun.spawn(["curl", "-sS", "-o", filePath, url], {
-        stdout: "pipe",
-        stderr: "pipe",
+    if (hasCurl) {
+      await new Promise<void>((resolve, reject) => {
+        const proc = spawn("curl", ["-sS", "-o", filePath, url]);
+        let stderr = "";
+        proc.stderr.on("data", (data: Buffer) => {
+          stderr += data.toString();
+        });
+        proc.on("close", (code: number | null) => {
+          if (code !== 0) {
+            reject(new Error(`Failed to download image: ${stderr}`));
+          } else {
+            resolve();
+          }
+        });
+        proc.on("error", (err: Error) => {
+          reject(new Error(`Failed to spawn curl: ${err.message}`));
+        });
       });
-
-      const exitCode = await proc.exited;
-      if (exitCode !== 0) {
-        const stderr = await new Response(proc.stderr).text();
-        throw new Error(`Failed to download image: ${stderr}`);
-      }
     } else {
-      // Fallback to fetch when curl is not available
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(
@@ -143,10 +156,18 @@ export class ReplicateService {
         );
       }
       const buffer = await response.arrayBuffer();
-      await Bun.write(filePath, buffer);
+      await writeFile(filePath, Buffer.from(buffer));
     }
 
     return filePath;
+  }
+
+  private async hasCurl(): Promise<boolean> {
+    return new Promise((resolve) => {
+      const proc = spawn("which", ["curl"]);
+      proc.on("close", (code: number | null) => resolve(code === 0));
+      proc.on("error", () => resolve(false));
+    });
   }
 }
 
