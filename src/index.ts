@@ -12,7 +12,7 @@ import { registerTelegramTools } from "./telegram/tools";
 
 const server = new McpServer({
   name: "klinklang",
-  version: "1.0.0",
+  version: "0.0.2",
 });
 
 const moduleConfig = getModuleConfigService();

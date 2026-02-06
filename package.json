@@ -1,6 +1,6 @@
 {
   "name": "klinklang",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A modular MCP server connecting productivity tools to AI assistants",
   "type": "module",
   "bin": {
