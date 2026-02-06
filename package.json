@@ -1,24 +1,48 @@
 {
   "name": "klink",
-  "module": "index.ts",
+  "version": "0.1.0",
+  "description": "A modular MCP server connecting productivity tools to AI assistants",
   "type": "module",
-  "private": true,
+  "bin": {
+    "klink": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "ai",
+    "jira",
+    "github",
+    "slack",
+    "telegram",
+    "cli"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/irvingdinh/klink.git"
+  },
   "scripts": {
+    "build": "tsup",
     "lint": "eslint src/ && prettier --check src/",
-    "lint:fix": "eslint src/ --fix && prettier --write src/"
+    "lint:fix": "eslint src/ --fix && prettier --write src/",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@types/bun": "latest",
+    "@types/node": "^22.0.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^16.5.0",
-    "prettier": "^3.7.4",
-    "typescript-eslint": "^8.50.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+    "prettier": "^3.8.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.1"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.0",

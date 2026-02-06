@@ -1,3 +1,4 @@
+import { access, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
@@ -135,14 +136,17 @@ export class TelegramService {
     caption?: string;
     replyToMessageId?: number;
   }): Promise<TelegramMessage> {
-    const file = Bun.file(filePath);
-    if (!(await file.exists())) {
+    try {
+      await access(filePath);
+    } catch {
       throw new Error(`File not found: ${filePath}`);
     }
 
+    const buffer = await readFile(filePath);
+    const blob = new Blob([buffer]);
     const formData = new FormData();
     formData.append("chat_id", String(chatId));
-    formData.append("document", file, basename(filePath));
+    formData.append("document", blob, basename(filePath));
     if (caption) formData.append("caption", caption);
     if (replyToMessageId)
       formData.append("reply_to_message_id", String(replyToMessageId));
@@ -170,14 +174,17 @@ export class TelegramService {
     caption?: string;
     replyToMessageId?: number;
   }): Promise<TelegramMessage> {
-    const file = Bun.file(filePath);
-    if (!(await file.exists())) {
+    try {
+      await access(filePath);
+    } catch {
       throw new Error(`File not found: ${filePath}`);
     }
 
+    const buffer = await readFile(filePath);
+    const blob = new Blob([buffer]);
     const formData = new FormData();
     formData.append("chat_id", String(chatId));
-    formData.append("photo", file, basename(filePath));
+    formData.append("photo", blob, basename(filePath));
     if (caption) formData.append("caption", caption);
     if (replyToMessageId)
       formData.append("reply_to_message_id", String(replyToMessageId));
@@ -234,7 +241,7 @@ export class TelegramService {
       destinationPath ?? join(tmpdir(), `telegram-${fileName}`);
 
     const arrayBuffer = await response.arrayBuffer();
-    await Bun.write(outputPath, arrayBuffer);
+    await writeFile(outputPath, Buffer.from(arrayBuffer));
 
     return outputPath;
   }
