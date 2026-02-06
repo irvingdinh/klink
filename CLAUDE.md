@@ -6,7 +6,7 @@ Automatically use context7 for code generation and library documentation.
 
 ## Project Overview
 
-klink is an MCP (Model Context Protocol) server built with Node.js that provides AI assistants access to productivity tools (Jira, GitHub, Slack, Telegram, Quip, PocketBase, Replicate, n8n). Distributed via npm as `klink` (`npx klink@latest`).
+klinklang is an MCP (Model Context Protocol) server built with Node.js that provides AI assistants access to productivity tools (Jira, GitHub, Slack, Telegram, Quip, PocketBase, Replicate, n8n). Distributed via npm as `klinklang` (`npx klinklang@latest`).
 
 - **Runtime:** Node.js (>=18)
 - **Build:** tsup (esbuild wrapper)

@@ -1,6 +1,6 @@
 # How to Write MCP Tool Handlers
 
-A step-by-step guide for implementing MCP tool handlers in klink. Read this before implementing any new tool.
+A step-by-step guide for implementing MCP tool handlers in klinklang. Read this before implementing any new tool.
 
 ## Handler Architecture
 

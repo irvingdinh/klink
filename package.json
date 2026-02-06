@@ -1,10 +1,10 @@
 {
-  "name": "klink",
-  "version": "0.1.0",
+  "name": "klinklang",
+  "version": "0.0.1",
   "description": "A modular MCP server connecting productivity tools to AI assistants",
   "type": "module",
   "bin": {
-    "klink": "./dist/index.js"
+    "klinklang": "dist/index.js"
   },
   "files": [
     "dist"
@@ -24,7 +24,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/irvingdinh/klink.git"
+    "url": "git+https://github.com/irvingdinh/klinklang.git"
   },
   "scripts": {
     "build": "tsup",

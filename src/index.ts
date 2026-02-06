@@ -11,7 +11,7 @@ import { registerSlackTools } from "./slack/tools";
 import { registerTelegramTools } from "./telegram/tools";
 
 const server = new McpServer({
-  name: "klink",
+  name: "klinklang",
   version: "1.0.0",
 });
 

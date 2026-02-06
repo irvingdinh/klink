@@ -10,12 +10,12 @@ export class ModuleConfigService {
   private readonly exclude: string[] | null = null;
 
   constructor() {
-    const envInclude = process.env.KLINK_INCLUDE?.trim() || null;
-    const envExclude = process.env.KLINK_EXCLUDE?.trim() || null;
+    const envInclude = process.env.KLINKLANG_INCLUDE?.trim() || null;
+    const envExclude = process.env.KLINKLANG_EXCLUDE?.trim() || null;
 
     if (envInclude && envExclude) {
       throw new Error(
-        "KLINK_INCLUDE and KLINK_EXCLUDE are mutually exclusive. Use one or the other.",
+        "KLINKLANG_INCLUDE and KLINKLANG_EXCLUDE are mutually exclusive. Use one or the other.",
       );
     }
 

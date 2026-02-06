@@ -34,7 +34,7 @@ server.registerTool(
 );
 ```
 
-### Example from klink: `jira_search_issues`
+### Example from klinklang: `jira_search_issues`
 
 ```typescript
 // src/jira/tools/search-issues.tool.ts

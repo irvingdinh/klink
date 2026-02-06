@@ -1,4 +1,4 @@
-# klink
+# klinklang
 
 A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Jira, GitHub, Slack, Telegram, Quip, Pocketbase, and Replicate into Claude, Cursor, and other MCP-compatible clients.
 
@@ -16,17 +16,17 @@ A modular MCP (Model Context Protocol) server that connects your productivity to
 
 ## Quick Start
 
-Use klink directly via npx - no installation required:
+Use klinklang directly via npx - no installation required:
 
 ```bash
-npx klink@latest
+npx klinklang@latest
 ```
 
 Or install globally:
 
 ```bash
-npm install -g klink
-klink
+npm install -g klinklang
+klinklang
 ```
 
 ## Configuration
@@ -87,16 +87,16 @@ Control which modules are loaded using CLI options or environment variables:
 | Method | Include | Exclude |
 |--------|---------|---------|
 | CLI | `--include jira,github` | `--exclude quip,slack` |
-| Env | `KLINK_INCLUDE=jira,github` | `KLINK_EXCLUDE=quip,slack` |
+| Env | `KLINKLANG_INCLUDE=jira,github` | `KLINKLANG_EXCLUDE=quip,slack` |
 
 ```bash
 # CLI examples
-npx klink@latest -- --include jira,github
-npx klink@latest -- --exclude quip,slack
+npx klinklang@latest -- --include jira,github
+npx klinklang@latest -- --exclude quip,slack
 
 # Environment variable examples
-KLINK_INCLUDE=jira,github npx klink@latest
-KLINK_EXCLUDE=quip,slack npx klink@latest
+KLINKLANG_INCLUDE=jira,github npx klinklang@latest
+KLINKLANG_EXCLUDE=quip,slack npx klinklang@latest
 ```
 
 > **Priority:** Environment variables override CLI options if both are set.
@@ -202,9 +202,9 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
 ```json
 {
   "mcpServers": {
-    "klink": {
+    "klinklang": {
       "command": "npx",
-      "args": ["-y", "klink@latest"],
+      "args": ["-y", "klinklang@latest"],
       "env": {
         "JIRA_HOST": "https://your-org.atlassian.net",
         "JIRA_EMAIL_ADDRESS": "you@company.com",
@@ -231,9 +231,9 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
 ```json
 {
   "mcpServers": {
-    "klink": {
+    "klinklang": {
       "command": "npx",
-      "args": ["-y", "klink@latest", "--", "--exclude", "quip"],
+      "args": ["-y", "klinklang@latest", "--", "--exclude", "quip"],
       "env": {
         "JIRA_HOST": "https://your-org.atlassian.net",
         "JIRA_EMAIL_ADDRESS": "you@company.com",
@@ -255,7 +255,7 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
 ### OpenAI Codex CLI
 
 ```bash
-codex mcp add klink -- npx -y klink@latest
+codex mcp add klinklang -- npx -y klinklang@latest
 ```
 
 ## Architecture
