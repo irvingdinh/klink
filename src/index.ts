@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 import { getModuleConfigService } from "./core/service/module-config.service.ts";
+import { registerDynatraceTools } from "./dynatrace/tools";
 import { registerGithubTools } from "./github/tools";
 import { registerJiraTools } from "./jira/tools";
 import { registerPocketbaseTools } from "./pocketbase/tools";
@@ -16,6 +17,7 @@ const server = new McpServer({
 });
 
 const moduleConfig = getModuleConfigService();
+if (moduleConfig.isEnabled("dynatrace")) registerDynatraceTools(server);
 if (moduleConfig.isEnabled("github")) registerGithubTools(server);
 if (moduleConfig.isEnabled("jira")) registerJiraTools(server);
 if (moduleConfig.isEnabled("quip")) registerQuipTools(server);
