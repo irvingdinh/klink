@@ -39,9 +39,10 @@ export class ConfluenceService {
     pageId: string;
     expand?: string;
   }): Promise<any> {
-    const response = await fetch(
+    const response = await this.fetchWithRetry(
       this.makeUrl("content", pageId) + "?" + new URLSearchParams({ expand }),
       this.makeAuth(),
+      "getPage",
     );
 
     if (!response.ok) {
@@ -78,9 +79,10 @@ export class ConfluenceService {
       expand,
     });
 
-    const response = await fetch(
+    const response = await this.fetchWithRetry(
       this.makeUrl("content", "search") + "?" + params.toString(),
       this.makeAuth(),
+      "searchPages",
     );
 
     if (!response.ok) {
@@ -107,11 +109,12 @@ export class ConfluenceService {
       expand,
     });
 
-    const response = await fetch(
+    const response = await this.fetchWithRetry(
       this.makeUrl("content", pageId, "child", "page") +
         "?" +
         params.toString(),
       this.makeAuth(),
+      "listChildPages",
     );
 
     if (!response.ok) {
@@ -136,9 +139,10 @@ export class ConfluenceService {
     });
     if (type) params.set("type", type);
 
-    const response = await fetch(
+    const response = await this.fetchWithRetry(
       this.makeUrl("space") + "?" + params.toString(),
       this.makeAuth(),
+      "listSpaces",
     );
 
     if (!response.ok) {
@@ -157,9 +161,10 @@ export class ConfluenceService {
   }): Promise<any> {
     const params = new URLSearchParams({ expand });
 
-    const response = await fetch(
+    const response = await this.fetchWithRetry(
       this.makeUrl("space", spaceKey) + "?" + params.toString(),
       this.makeAuth(),
+      "getSpace",
     );
 
     if (!response.ok) {
@@ -186,11 +191,12 @@ export class ConfluenceService {
       expand,
     });
 
-    const response = await fetch(
+    const response = await this.fetchWithRetry(
       this.makeUrl("content", pageId, "child", "comment") +
         "?" +
         params.toString(),
       this.makeAuth(),
+      "listComments",
     );
 
     if (!response.ok) {
@@ -230,11 +236,12 @@ export class ConfluenceService {
       expand,
     });
 
-    const response = await fetch(
+    const response = await this.fetchWithRetry(
       this.makeUrl("content", pageId, "child", "attachment") +
         "?" +
         params.toString(),
       this.makeAuth(),
+      "listAttachments",
     );
 
     if (!response.ok) {
@@ -266,6 +273,50 @@ export class ConfluenceService {
         "Provide a numeric page ID (e.g., '123456') or a Confluence URL " +
         "(e.g., 'https://wiki.example.com/pages/123456/Title' or '?pageId=123456').",
     );
+  }
+
+  private async fetchWithRetry(
+    url: string,
+    options: RequestInit,
+    action: string,
+  ): Promise<Response> {
+    const maxRetries = 3;
+    const baseDelay = 1000;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      const response = await fetch(url, options);
+
+      if (response.status !== 429 && response.status !== 503) {
+        return response;
+      }
+
+      if (attempt === maxRetries) {
+        return response;
+      }
+
+      // Respect Retry-After but enforce a floor from the rate limit interval
+      // (some servers send Retry-After: 0 while the rate window hasn't cleared).
+      const retryAfterHeader = response.headers.get("Retry-After");
+      const intervalHeader = response.headers.get(
+        "X-RateLimit-Interval-Seconds",
+      );
+      const retryAfterMs = retryAfterHeader
+        ? parseInt(retryAfterHeader, 10) * 1000
+        : baseDelay * Math.pow(2, attempt);
+      const floorMs = intervalHeader
+        ? parseInt(intervalHeader, 10) * 1000
+        : baseDelay;
+      const delay = Math.max(retryAfterMs, floorMs);
+      const jitter = Math.random() * 500;
+
+      console.error(
+        `[confluence] ${action}: ${response.status} rate limited, retrying in ${((delay + jitter) / 1000).toFixed(1)}s (attempt ${attempt + 1}/${maxRetries})`,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, delay + jitter));
+    }
+
+    throw new Error(`${action}: unreachable`);
   }
 
   private makeUrl(...paths: string[]): string {
