@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
+import { registerConfluenceTools } from "./confluence/tools";
 import { getModuleConfigService } from "./core/service/module-config.service.ts";
 import { registerDynatraceTools } from "./dynatrace/tools";
 import { registerGithubTools } from "./github/tools";
@@ -17,6 +18,7 @@ const server = new McpServer({
 });
 
 const moduleConfig = getModuleConfigService();
+if (moduleConfig.isEnabled("confluence")) registerConfluenceTools(server);
 if (moduleConfig.isEnabled("dynatrace")) registerDynatraceTools(server);
 if (moduleConfig.isEnabled("github")) registerGithubTools(server);
 if (moduleConfig.isEnabled("jira")) registerJiraTools(server);

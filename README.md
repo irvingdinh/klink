@@ -1,11 +1,12 @@
 # klinklang
 
-A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Jira, GitHub, Slack, Telegram, Quip, Pocketbase, and Replicate into Claude, Cursor, and other MCP-compatible clients.
+A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Confluence, Jira, GitHub, Slack, Telegram, Quip, Pocketbase, and Replicate into Claude, Cursor, and other MCP-compatible clients.
 
 ## Features
 
 | Integration | Tools | Capabilities |
 |-------------|-------|--------------|
+| **Confluence** | 7 | Pages, spaces, search (CQL), child pages, comments, attachments |
 | **Jira** | 2 | Get issues, search with JQL |
 | **GitHub** | 4 | Pull requests, diffs, reviews, inline comments |
 | **Slack** | 9 | Channels, messages, threads, reactions, file uploads/downloads |
@@ -32,6 +33,13 @@ klinklang
 ## Configuration
 
 ### Environment Variables
+
+#### Confluence
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CONFLUENCE_HOST` | Yes | Your Confluence base URL (e.g., `https://wiki.ariba.com`) |
+| `CONFLUENCE_API_TOKEN` | Yes | [Personal Access Token](https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html) (PAT) with read permissions |
 
 #### Jira
 
@@ -103,6 +111,18 @@ KLINKLANG_EXCLUDE=quip,slack npx klinklang@latest
 > **Note:** `include` and `exclude` are mutually exclusive (regardless of source).
 
 ## Available Tools
+
+### Confluence
+
+| Tool | Description |
+|------|-------------|
+| `confluence_get_page` | Get a single page by ID or URL with body content (Markdown), metadata, labels, and ancestors |
+| `confluence_search_pages` | Search pages using CQL (Confluence Query Language) |
+| `confluence_list_child_pages` | List direct child pages under a parent page |
+| `confluence_list_spaces` | List available spaces with keys and names |
+| `confluence_get_space` | Get a single space by key with description and homepage |
+| `confluence_list_comments` | List comments on a page with resolution status |
+| `confluence_list_attachments` | List attachments on a page with file info and download URLs |
 
 ### Jira
 
@@ -206,6 +226,8 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
       "command": "npx",
       "args": ["-y", "klinklang@latest"],
       "env": {
+        "CONFLUENCE_HOST": "https://wiki.example.com",
+        "CONFLUENCE_API_TOKEN": "your-pat",
         "JIRA_HOST": "https://your-org.atlassian.net",
         "JIRA_EMAIL_ADDRESS": "you@company.com",
         "JIRA_API_TOKEN": "your-token",
@@ -235,6 +257,8 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
       "command": "npx",
       "args": ["-y", "klinklang@latest", "--", "--exclude", "quip"],
       "env": {
+        "CONFLUENCE_HOST": "https://wiki.example.com",
+        "CONFLUENCE_API_TOKEN": "your-pat",
         "JIRA_HOST": "https://your-org.atlassian.net",
         "JIRA_EMAIL_ADDRESS": "you@company.com",
         "JIRA_API_TOKEN": "your-token",
@@ -271,6 +295,9 @@ src/
 │   └── utils/
 │       ├── http.utils.ts       # HTTP error formatting
 │       └── tool.utils.ts       # Handler wrappers (withErrorHandling, etc.)
+├── confluence/
+│   ├── services/external/      # Confluence REST API client
+│   └── tools/                  # confluence_* tool definitions
 ├── jira/
 │   ├── services/external/      # Jira API client
 │   └── tools/                  # jira_* tool definitions
