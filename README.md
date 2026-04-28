@@ -1,11 +1,12 @@
 # klinklang
 
-A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Confluence, Jira, GitHub, Slack, Telegram, Quip, Pocketbase, and Replicate into Claude, Cursor, and other MCP-compatible clients.
+A modular MCP (Model Context Protocol) server that connects your productivity tools to AI assistants. Seamlessly integrate Aha!, Confluence, Jira, GitHub, Slack, Telegram, Quip, Pocketbase, and Replicate into Claude, Cursor, and other MCP-compatible clients.
 
 ## Features
 
 | Integration | Tools | Capabilities |
 |-------------|-------|--------------|
+| **Aha!** | 13 | Products, releases, epics, features, ideas, comments, requirements |
 | **Confluence** | 7 | Pages, spaces, search (CQL), child pages, comments, attachments |
 | **Jira** | 2 | Get issues, search with JQL |
 | **GitHub** | 4 | Pull requests, diffs, reviews, inline comments |
@@ -33,6 +34,13 @@ klinklang
 ## Configuration
 
 ### Environment Variables
+
+#### Aha!
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `AHA_HOST` | Yes | Your Aha! base URL (e.g., `https://your-company.aha.io`) |
+| `AHA_API_TOKEN` | Yes | [API key](https://www.aha.io/api#authentication) from Settings > Personal > Developer > API key |
 
 #### Confluence
 
@@ -111,6 +119,24 @@ KLINKLANG_EXCLUDE=quip,slack npx klinklang@latest
 > **Note:** `include` and `exclude` are mutually exclusive (regardless of source).
 
 ## Available Tools
+
+### Aha!
+
+| Tool | Description |
+|------|-------------|
+| `aha_list_products` | List all products (workspaces) with reference prefixes |
+| `aha_get_product` | Get product details by ID or reference prefix (e.g., 'GTT') |
+| `aha_list_releases` | List releases in a product |
+| `aha_get_release` | Get release details by ID or reference number (e.g., 'GTT-R-1') |
+| `aha_list_epics` | List epics in a product or release |
+| `aha_get_epic` | Get epic details by ID or reference number (e.g., 'GTT-E-1') |
+| `aha_list_features` | List features by product, release, or epic |
+| `aha_get_feature` | Get feature details by ID or reference number (e.g., 'GTT-123') |
+| `aha_list_ideas` | List ideas/feedback in a product |
+| `aha_get_idea` | Get idea details by ID or reference number (e.g., 'GTT-I-1') |
+| `aha_list_comments` | List comments on a feature, epic, idea, or release |
+| `aha_list_requirements` | List requirements (sub-items) of a feature |
+| `aha_get_requirement` | Get requirement details by ID or reference number |
 
 ### Confluence
 
@@ -226,6 +252,8 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
       "command": "npx",
       "args": ["-y", "klinklang@latest"],
       "env": {
+        "AHA_HOST": "https://your-company.aha.io",
+        "AHA_API_TOKEN": "your-api-key",
         "CONFLUENCE_HOST": "https://wiki.example.com",
         "CONFLUENCE_API_TOKEN": "your-pat",
         "JIRA_HOST": "https://your-org.atlassian.net",
@@ -257,6 +285,8 @@ Add to your Cursor MCP settings (`.cursor/mcp.json` in your project or global co
       "command": "npx",
       "args": ["-y", "klinklang@latest", "--", "--exclude", "quip"],
       "env": {
+        "AHA_HOST": "https://your-company.aha.io",
+        "AHA_API_TOKEN": "your-api-key",
         "CONFLUENCE_HOST": "https://wiki.example.com",
         "CONFLUENCE_API_TOKEN": "your-pat",
         "JIRA_HOST": "https://your-org.atlassian.net",
@@ -295,6 +325,9 @@ src/
 │   └── utils/
 │       ├── http.utils.ts       # HTTP error formatting
 │       └── tool.utils.ts       # Handler wrappers (withErrorHandling, etc.)
+├── aha/
+│   ├── services/external/      # Aha! API client
+│   └── tools/                  # aha_* tool definitions
 ├── confluence/
 │   ├── services/external/      # Confluence REST API client
 │   └── tools/                  # confluence_* tool definitions
